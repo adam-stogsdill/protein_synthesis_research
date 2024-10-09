@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import torch
 
 def load_pdb(molecule_filter: list[str], data_loc: str, length_filter = None) -> pd.DataFrame:
     if not os.path.exists(data_loc):
@@ -51,4 +52,11 @@ def context_size_filter(dataframe, context_length: int=1024, min_length: int=0, 
                 
     return pd.DataFrame.from_dict(output_data)
             
-            
+def dataset_generator(dataframe, tokenizer, mask_token_id, mask_probability: float=0.5, sequence_column_name='Sequence', return_tensors='pt'):
+    for seq in dataframe[sequence_column_name]:
+        tokenized_output = tokenizer(seq, return_tensors=return_tensors)
+        mask = torch.rand(tokenized_output['input_ids'].shape[1]) < mask_probability
+        true_values = tokenized_output['input_ids'].clone()[0, mask]
+        tokenized_output['input_ids'].masked_fill_(mask, mask_token_id)
+        
+        yield tokenized_output, mask, true_values 
