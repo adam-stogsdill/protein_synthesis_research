@@ -33,3 +33,22 @@ def load_pdb(molecule_filter: list[str], data_loc: str, length_filter = None) ->
             output_data["length"].append(length)
               
     return pd.DataFrame.from_dict(output_data)
+
+def context_size_filter(dataframe, context_length: int=1024, min_length: int=0, max_length: int=None, window: bool=True, stride: int=100) -> pd.DataFrame:
+    output_data = {"Name": [], "Sequence": [], "MolType": [], 'length': []}
+    for idx, row in dataframe.iterrows():
+        if row['length'] > min_length and row['length'] <= max_length:
+            if window and len(row['Sequence']) > context_length:
+                for i, index in enumerate(range(0, len(row['Sequence']), stride)):
+                    sequence_data = row['Sequence'][index:index+context_length] if len(row['Sequence'][index:]) > context_length else row['Sequence'][index:]
+                    output_data['Name'].append(f'{row["Name"]}_{i}')
+                    output_data['Sequence'].append(sequence_data)
+                    output_data['MolType'].append(row['MolType'])
+                    output_data['length'].append(len(sequence_data))
+            else:
+                for key in output_data:
+                    output_data[key].append(row[key])
+                
+    return pd.DataFrame.from_dict(output_data)
+            
+            
