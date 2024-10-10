@@ -52,7 +52,7 @@ def context_size_filter(dataframe, context_length: int=1024, min_length: int=0, 
                 
     return pd.DataFrame.from_dict(output_data)
             
-def dataset_generator(dataframe, tokenizer, mask_token_id, mask_probability: float=0.5, sequence_column_name='Sequence', return_tensors='pt'):
+def masked_dataset_generator(dataframe, tokenizer, mask_token_id, mask_probability: float=0.5, sequence_column_name='Sequence', return_tensors='pt'):
     for seq in dataframe[sequence_column_name]:
         tokenized_output = tokenizer(seq, return_tensors=return_tensors)
         mask = torch.rand(tokenized_output['input_ids'].shape[1]) < mask_probability
